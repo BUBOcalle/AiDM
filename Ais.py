@@ -2,9 +2,11 @@ from rollplayClasses import *
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import os
+from dotenv import load_dotenv
 
 from newCharacterEncountered_Examples import EXAMPLES as NEW_CHARACTER_EXAMPLES
 
+load_dotenv()
 genai.configure(api_key=os.environ["API_KEY"])
 
 
@@ -154,6 +156,30 @@ class infoFetcherAi:
     #                                                     top_p=0.95
     #                                                  )).text
     #     return new_characters
+
+
+class modeSwitcher():
+    def __init__(self):
+        self.model = genai.GenerativeModel("gemini-1.5-flash")
+    
+    def __str__(self):
+        pass
+
+    def newMode(self, response):
+        if "Y" == self.model.generate_content(f"ONLY ANSWERE YES OR NO. Did this encounter start a combat or a fight? Encounter: {response}",
+                                                generation_config=genai.types.GenerationConfig(
+                                                    max_output_tokens=1000,
+                                                    temperature=0.0,
+                                                    top_p=0.95
+                                                ),
+                                                safety_settings={
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                }).text[0]:
+            #start combat
+            pass
 
 
 if __name__=='__main__':
