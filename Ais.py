@@ -70,6 +70,41 @@ class stateOfTheGame():
                                                     }).text
 
         return history_summary
+    
+
+    def updateGameState(self):
+        # Did the hero recieve or lose any equipment?
+        instructions = "Please analyze the story and determine if the hero lost or acquired any equipment. Consider the entire story history, "+\
+            "the most recent event and the current state of the game found below. Provide two lists, first one with any new equipment and then one "+\
+            "with any lost equipment on the form: \n[new_equipment_1, new_equipment_2, ...]\n[lost_equipment_1, lost_equipment_2, ...]"+\
+            "\nIf no equipment is lost or gained, reply with two empty lists. Any lost equipment must match the exact name in the current hero state. "+\
+            "Note that weapons do not count as equipment. "
+        history_str = '\n'.join(f'{input}\n{dm}' for input, dm in self.history)
+        recent_history_str = '\n'.join(f'{input}\n{dm}' for input, dm in self.recent_history)
+        state = str(self)
+        # examples = "The bridge swayed in the wind and the hero dropped his treasured "
+
+        prompt = f"<instructions>\n{instructions}\n<\instructions>\n\n"+\
+            f"<history>\n{history_str}\n{recent_history_str}\n</history>\n\n"+\
+            f"<current state>\n{state}\n</current state>\n\n"
+            # f"<examples>{examples}\n</examples>"
+        equipment = self.model.generate_content(prompt,
+                                                generation_config=genai.types.GenerationConfig(
+                                                max_output_tokens=1000,
+                                                temperature=0.0,
+                                                top_p=0.95
+                                                ),
+                                                safety_settings={
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                }).text
+        print(equipment)
+
+        # Did the hero acquire or lose any weapons?
+
+        # Did the location of the hero change?
 
 
 
@@ -82,6 +117,7 @@ class storyTeller:
         pass
 
     def createPromt(self, inputs, state):
+        # Don't let the adventurer spawn new characters
         instructions = "You are the dungeon master telling the epic story of a DND adventure. Please tell the adventurers about the next scene. "+\
             "Consider the current state of the adventure and the history of what has happened so far. Don't let the heroes perform unrealistic "+\
             "actions given thier character descriptions. For instance, a knight typically cannot perform magic spells. "+\
@@ -128,34 +164,6 @@ class infoFetcherAi:
     
     def __str__(self):
         pass
-
-    # def newCharacterEncountered(self, currentState, lastResponse):
-    #     # print("New character?")
-    #     # print(self.model.generate_content([f"ANSWER ONLY YES OR NO, are there any new characters introduced in this prompt, that are NOT in the following lists: {NPC} or {enemies}. Promt: {lastResponse}"],
-    #     #                                 generation_config=genai.types.GenerationConfig(
-    #     #                                 max_output_tokens=10,
-    #     #                                 temperature=0.0,
-    #     #                                 top_p=0.95
-    #     #                                 )).text)
-        
-    #     instructions = "You are a story analyst tasked with finding out if a new piece of the story introduces any new characters. "+\
-    #         "Please provide a list of any NEW characters relevant to the story. Consider the list of known "+\
-    #         "characters below. The text to analyze is found at the bottom. "+\
-    #         "Produce a list on the form: [character1, character2, ...], or simply [] if no new characters were introduced. "
-    #     examples = '\n'.join(f'{text}\n{characters}' for text, characters in NEW_CHARACTER_EXAMPLES)
-
-    #     prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
-    #         f"<characters>\n{currentState.NPCs}\n{currentState.hero}\n</characters>\n\n"+\
-    #         f"<text>\n{lastResponse}\n</text>\n\n"+\
-    #         f"<examples>\n{examples}\n</examples>"
-    #     print(prompt)
-    #     new_characters = self.model.generate_content(prompt,
-    #                                                  generation_config=genai.types.GenerationConfig(
-    #                                                     max_output_tokens=100,
-    #                                                     temperature=0.0,
-    #                                                     top_p=0.95
-    #                                                  )).text
-    #     return new_characters
 
 
 class modeSwitcher():
