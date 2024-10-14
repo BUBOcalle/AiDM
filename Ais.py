@@ -201,13 +201,17 @@ class modeSwitcher():
             f"<text>\n{lastResponse}\n</text>\n\n"+\
             f"<examples>\n{examples}\n</examples>"
         print(prompt)
-        new_characters = self.model.generate_content(prompt,
+        enemiesString = self.model.generate_content(prompt,
                                                     generation_config=genai.types.GenerationConfig(
                                                         max_output_tokens=100,
                                                         temperature=0.0,
                                                         top_p=0.95
                                                     )).text
-        return new_characters
+        enemiesList = []
+        for line in enemiesString.split("\n"):
+            attributes = [a.split(":")[1] for a in line.split(",")]
+            enemiesList.append(Enemy(attributes))
+        return enemiesList
 
 if __name__=='__main__':
     DM = storyTeller()
