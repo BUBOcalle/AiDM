@@ -4,7 +4,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import os
 from dotenv import load_dotenv
 
-# from EnemyExamples import EXAMPLES as ENEMY_EXAMPLES
+from EnemyExamples import EXAMPLES as ENEMY_EXAMPLES
 
 load_dotenv()
 genai.configure(api_key=os.environ["API_KEY"])
