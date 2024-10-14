@@ -17,11 +17,9 @@ modes = modeSwitcher()
 
 def interactionLoop(inputs, history):
     response = DM.generateResponse(inputs, state)
-    # lastResponse = DM.response(inputs, history)
-    # print(lastResponse)
-    # infoFetcher.newCharacterEncountered(DM.NPCs, DM.enemies, lastResponse)
-    # print(infoFetcher.newCharacterEncountered(state, response))
-    state.generateLongTermHistory(state.recent_history)
+    state.updateGameState()
+
+    # state.generateLongTermHistory(state.recent_history)
     print("Combat?")
     print(modes.newMode(response))
     return response

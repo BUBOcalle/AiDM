@@ -70,6 +70,41 @@ class stateOfTheGame():
                                                     }).text
 
         return history_summary
+    
+
+    def updateGameState(self):
+        # Did the hero recieve or lose any equipment?
+        instructions = "Please analyze the story and determine if the hero lost or acquired any equipment. Consider the entire story history, "+\
+            "the most recent event and the current state of the game found below. Provide two lists, first one with any new equipment and then one "+\
+            "with any lost equipment on the form: \n[new_equipment_1, new_equipment_2, ...]\n[lost_equipment_1, lost_equipment_2, ...]"+\
+            "\nIf no equipment is lost or gained, reply with two empty lists. Any lost equipment must match the exact name in the current hero state. "+\
+            "Note that weapons do not count as equipment. "
+        history_str = '\n'.join(f'{input}\n{dm}' for input, dm in self.history)
+        recent_history_str = '\n'.join(f'{input}\n{dm}' for input, dm in self.recent_history)
+        state = str(self)
+        # examples = "The bridge swayed in the wind and the hero dropped his treasured "
+
+        prompt = f"<instructions>\n{instructions}\n<\instructions>\n\n"+\
+            f"<history>\n{history_str}\n{recent_history_str}\n</history>\n\n"+\
+            f"<current state>\n{state}\n</current state>\n\n"
+            # f"<examples>{examples}\n</examples>"
+        equipment = self.model.generate_content(prompt,
+                                                generation_config=genai.types.GenerationConfig(
+                                                max_output_tokens=1000,
+                                                temperature=0.0,
+                                                top_p=0.95
+                                                ),
+                                                safety_settings={
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                }).text
+        print(equipment)
+
+        # Did the hero acquire or lose any weapons?
+
+        # Did the location of the hero change?
 
 
 
@@ -82,6 +117,7 @@ class storyTeller:
         pass
 
     def createPromt(self, inputs, state):
+        # Don't let the adventurer spawn new characters
         instructions = "You are the dungeon master telling the epic story of a DND adventure. Please tell the adventurers about the next scene. "+\
             "Consider the current state of the adventure and the history of what has happened so far. Don't let the heroes perform unrealistic "+\
             "actions given thier character descriptions. For instance, a knight typically cannot perform magic spells. "+\
@@ -129,6 +165,27 @@ class infoFetcherAi:
     def __str__(self):
         pass
 
+    def EnemiesForCombat(self, currentState, lastResponse, enemyList):
+        instructions = "You are a helper to a dungeon master in DnD, and your task is to give reasonable stats to enemies before combat." +\
+            "The enemies should be printed in EXACTLY this format:"+\
+            "name/title:value, hp:value, battleSkill:value, damageOutput:value" +\
+            "To help you, you can read the story so far. It will be in the text section." +\
+            "The name/title is the only one you can probabably find in the story. The other values you have to come up with yourself." +\
+            "Use the name/title of the character, and the examples below to generate the values. Try to be realistic. A bear should be much stronger than a human. A goblin should be slightly weaker than a human, etc."    
+        examples = '\n'.join(line[0] for line in ENEMY_EXAMPLES)
+
+        prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
+            f"<enemiesToGiveStats>\n{enemyList}\n</enemiesToGiveStats>\n\n"+\
+            f"<text>\n{lastResponse}\n</text>\n\n"+\
+            f"<examples>\n{examples}\n</examples>"
+        print(prompt)
+        new_characters = self.model.generate_content(prompt,
+                                                    generation_config=genai.types.GenerationConfig(
+                                                        max_output_tokens=100,
+                                                        temperature=0.0,
+                                                        top_p=0.95
+                                                    )).text
+        return new_characters
         
     # def newCharacterEncountered(self, currentState, lastResponse):
     #     # print("New character?")
