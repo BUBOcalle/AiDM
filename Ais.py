@@ -180,10 +180,11 @@ class modeSwitcher():
                                                     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
                                                     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
                                                 }).text
-        print(fightTest)
         if "[" in fightTest:
             print(literal_eval(fightTest[fightTest.find("["):fightTest.find("]") + 1]))
             print(self.EnemiesForCombat(response, literal_eval(fightTest[fightTest.find("["):fightTest.find("]") + 1])))
+            return 1
+        return 0
 
 
     def EnemiesForCombat(self, lastResponse, enemyList):

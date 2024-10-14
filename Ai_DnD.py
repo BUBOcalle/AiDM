@@ -12,17 +12,21 @@ genai.configure(api_key=os.environ["API_KEY"])
 
 DM = storyTeller()
 state = stateOfTheGame()
-infoFetcher = infoFetcherAi()
 modes = modeSwitcher()
 
-def interactionLoop(inputs, history):
-    response = DM.generateResponse(inputs, state)
-    state.updateGameState()
+inCombat = 0
 
-    # state.generateLongTermHistory(state.recent_history)
-    print("Combat?")
-    print(modes.newMode(response))
-    return response
+def interactionLoop(inputs, history):
+    if inCombat == 0:
+        response = DM.generateResponse(inputs, state)
+        state.updateGameState()
+
+        # state.generateLongTermHistory(state.recent_history)
+        print("Combat?")
+        inCombat = modes.newMode(response)
+        return response
+    elif inCombat == 1:
+        pass
 
 
 with gr.Blocks(fill_height=True) as demo:
