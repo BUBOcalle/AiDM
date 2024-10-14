@@ -60,7 +60,7 @@ def enemyTurn(hero: Hero, enemies: list[Enemy]):
         diff = enemyHits - heroHits
         if diff > 0:
             hero.hp -= enemy.damageOutput + diff
-            update += f"\n{enemy.name} did {enemy.damageOutput + diff} damage to you!"
+            update += f"\n{enemy.name} did {enemy.damageOutput + diff} damage to {hero.name}!"
     return update
 
 def heroAttackTurn(hero: Hero, enemy: Enemy, currentWeapon):
@@ -70,7 +70,9 @@ def heroAttackTurn(hero: Hero, enemy: Enemy, currentWeapon):
     diff = heroHits - enemyHits
     if diff > 0:
         enemy.hp -= currentWeapon.damage + diff
-        update += f"\nYou did {currentWeapon.damage + diff} damage to {enemy.name}!"
+        update += f"\n{hero.name} did {currentWeapon.damage + diff} damage to {enemy.name}!"
+    else:
+        update += f"\n{enemy.name} tries to attack {hero.name}, but misses!"
     return update
 
 class CombatScene:
