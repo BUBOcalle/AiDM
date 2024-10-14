@@ -18,6 +18,7 @@ def interactionLoop(inputs, history):
     # lastResponse = DM.response(inputs, history)
     # print(lastResponse)
     # infoFetcher.newCharacterEncountered(DM.NPCs, DM.enemies, lastResponse)
+    print(infoFetcher.newCharacterEncountered(state, response))
     return response
 
 
