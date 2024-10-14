@@ -138,7 +138,7 @@ class modeSwitcher():
         pass
 
     def newMode(self, response):
-        if "Y" == self.model.generate_content(f"ONLY ANSWERE YES OR NO. Did this encounter start a combat or a fight? Encounter: {response}",
+        fightTest = self.model.generate_content(f"Did this encounter start a combat or a fight? Encounter: {response}. IF NO PRINT 'NO.', IF YES PRINT A LIST OF THE ENEMIES IN THE ENCOUNTEREr IN THE FORM ['enemie1', 'enemie2']",
                                                 generation_config=genai.types.GenerationConfig(
                                                     max_output_tokens=1000,
                                                     temperature=0.0,
@@ -149,9 +149,12 @@ class modeSwitcher():
                                                     HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
                                                     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
                                                     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                                                }).text[0]:
-            #start combat
-            pass
+                                                }).text
+        
+        if fightTest[0] == "[":
+            print
+        #start combat
+        pass
 
 
 if __name__=='__main__':
