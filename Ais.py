@@ -152,7 +152,19 @@ class modeSwitcher():
                                                 }).text
         
         if fightTest[0] == "[":
-            print
+            print(fightTest)
+            self.model.generate_content(f"Give the following enemies stats: ",
+                                                generation_config=genai.types.GenerationConfig(
+                                                    max_output_tokens=1000,
+                                                    temperature=0.0,
+                                                    top_p=0.95
+                                                ),
+                                                safety_settings={
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                }).text
         #start combat
         pass
 
