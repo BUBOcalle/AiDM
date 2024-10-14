@@ -52,7 +52,7 @@ class storyTeller:
     def createPromt(self, inputs, history, stateOfTheGame):
         return f"""
             <instructions>
-                Be a good dugeon master and create an epic story. Tell what happens next in the story
+                Be a good dungeon master and create an epic story. Tell what happens next in the story
             <\instructions>
 
             <Hero character>
