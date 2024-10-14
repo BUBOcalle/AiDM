@@ -129,27 +129,7 @@ class infoFetcherAi:
     def __str__(self):
         pass
 
-    def EnemiesForCombat(self, currentState, lastResponse, enemyList):
-        instructions = "You are a helper to a dungeon master in DnD, and your task is to give reasonable stats to enemies before combat." +\
-            "The enemies should be printed in EXACTLY this format:"+\
-            "name/title:value, hp:value, battleSkill:value, damageOutput:value" +\
-            "To help you, you can read the story so far. It will be in the text section." +\
-            "The name/title is the only one you can probabably find in the story. The other values you have to come up with yourself." +\
-            "Use the name/title of the character, and the examples below to generate the values. Try to be realistic. A bear should be much stronger than a human. A goblin should be slightly weaker than a human, etc."    
-        examples = '\n'.join(line[0] for line in ENEMY_EXAMPLES)
-
-        prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
-            f"<enemiesToGiveStats>\n{enemyList}\n</enemiesToGiveStats>\n\n"+\
-            f"<text>\n{lastResponse}\n</text>\n\n"+\
-            f"<examples>\n{examples}\n</examples>"
-        print(prompt)
-        new_characters = self.model.generate_content(prompt,
-                                                    generation_config=genai.types.GenerationConfig(
-                                                        max_output_tokens=100,
-                                                        temperature=0.0,
-                                                        top_p=0.95
-                                                    )).text
-        return new_characters    
+        
     # def newCharacterEncountered(self, currentState, lastResponse):
     #     # print("New character?")
     #     # print(self.model.generate_content([f"ANSWER ONLY YES OR NO, are there any new characters introduced in this prompt, that are NOT in the following lists: {NPC} or {enemies}. Promt: {lastResponse}"],
@@ -199,12 +179,33 @@ class modeSwitcher():
                                                     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
                                                     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
                                                 }).text
-        
-        if fightTest[0] == "[":
-            print
+        print(fightTest)
+        if "[" in fightTest:
+            print(fightTest[fightTest.find("["):fightTest.find("]")])
         #start combat
         pass
 
+    def EnemiesForCombat(self, currentState, lastResponse, enemyList):
+        instructions = "You are a helper to a dungeon master in DnD, and your task is to give reasonable stats to enemies before combat." +\
+            "The enemies should be printed in EXACTLY this format:"+\
+            "name/title:value, hp:value, battleSkill:value, damageOutput:value" +\
+            "To help you, you can read the story so far. It will be in the text section." +\
+            "The name/title is the only one you can probabably find in the story. The other values you have to come up with yourself." +\
+            "Use the name/title of the character, and the examples below to generate the values. Try to be realistic. A bear should be much stronger than a human. A goblin should be slightly weaker than a human, etc."    
+        examples = '\n'.join(line[0] for line in ENEMY_EXAMPLES)
+
+        prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
+            f"<enemiesToGiveStats>\n{enemyList}\n</enemiesToGiveStats>\n\n"+\
+            f"<text>\n{lastResponse}\n</text>\n\n"+\
+            f"<examples>\n{examples}\n</examples>"
+        print(prompt)
+        new_characters = self.model.generate_content(prompt,
+                                                    generation_config=genai.types.GenerationConfig(
+                                                        max_output_tokens=100,
+                                                        temperature=0.0,
+                                                        top_p=0.95
+                                                    )).text
+        return new_characters
 
 if __name__=='__main__':
     DM = storyTeller()
