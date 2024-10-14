@@ -3,6 +3,7 @@ import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import os
 from dotenv import load_dotenv
+from ast import literal_eval
 
 from EnemyExamples import EXAMPLES as ENEMY_EXAMPLES
 
@@ -238,18 +239,18 @@ class modeSwitcher():
                                                 }).text
         print(fightTest)
         if "[" in fightTest:
-            print(fightTest[fightTest.find("["):fightTest.find("]")])
-        #start combat
-        pass
+            print(literal_eval(fightTest[fightTest.find("["):fightTest.find("]") + 1]))
+            print(self.EnemiesForCombat(response, literal_eval(fightTest[fightTest.find("["):fightTest.find("]") + 1])))
 
-    def EnemiesForCombat(self, currentState, lastResponse, enemyList):
+
+    def EnemiesForCombat(self, lastResponse, enemyList):
         instructions = "You are a helper to a dungeon master in DnD, and your task is to give reasonable stats to enemies before combat." +\
             "The enemies should be printed in EXACTLY this format:"+\
             "name/title:value, hp:value, battleSkill:value, damageOutput:value" +\
             "To help you, you can read the story so far. It will be in the text section." +\
             "The name/title is the only one you can probabably find in the story. The other values you have to come up with yourself." +\
             "Use the name/title of the character, and the examples below to generate the values. Try to be realistic. A bear should be much stronger than a human. A goblin should be slightly weaker than a human, etc."    
-        examples = '\n'.join(line[0] for line in ENEMY_EXAMPLES)
+        examples = '\n'.join(line for line in ENEMY_EXAMPLES)
 
         prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
             f"<enemiesToGiveStats>\n{enemyList}\n</enemiesToGiveStats>\n\n"+\
