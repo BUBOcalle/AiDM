@@ -25,13 +25,19 @@ class Hero:
 
 class Enemy:
     def __init__(self, type: str, name: str, hp: int, battleSkill: int, location: str, description: str, damageOutput: int):
-        self.type = type # player, enemy, npc
+        # self.type = type # player, enemy, npc
         self.name = name
         self.hp = hp
         self.battleSkill = battleSkill
-        self.location = location
-        self.description = description
+        # self.location = location
+        # self.description = description
         self.damageOutput = damageOutput
+
+    def __init__(self, array):
+        self.name = array[0]
+        self.hp = array[1]
+        self.battleSkill = array[2]
+        self.damageOutput = array[3]
 
     def __str__(self):
         return f"name: {self.name}, type: {self.type} location: {self.location}, description: {self.description}, battle skill: {self.battleSkill}, damage output: {self.damageOutput}."
