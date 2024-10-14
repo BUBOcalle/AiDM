@@ -2,15 +2,18 @@ import gradio as gr
 import random
 import google.generativeai as genai
 import os
+from dotenv import load_dotenv
 import PIL
 from rollplayClasses import *
 from Ais import *
 
+load_dotenv()
 genai.configure(api_key=os.environ["API_KEY"])
 
 DM = storyTeller()
 state = stateOfTheGame()
 infoFetcher = infoFetcherAi()
+modes = modeSwitcher()
 
 def interactionLoop(inputs, history):
     currentState = str(state)
@@ -18,7 +21,8 @@ def interactionLoop(inputs, history):
     # lastResponse = DM.response(inputs, history)
     # print(lastResponse)
     # infoFetcher.newCharacterEncountered(DM.NPCs, DM.enemies, lastResponse)
-    print(infoFetcher.newCharacterEncountered(state, response))
+    print("Combat?")
+    print(modes.newMode(response))
     return response
 
 
