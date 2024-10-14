@@ -163,7 +163,8 @@ class storyTeller:
 class modeSwitcher():
     def __init__(self):
         self.model = genai.GenerativeModel("gemini-1.5-flash")
-    
+        self.inCombat = 0
+
     def __str__(self):
         pass
 
@@ -182,7 +183,7 @@ class modeSwitcher():
                                                 }).text
         if "[" in fightTest:
             print(literal_eval(fightTest[fightTest.find("["):fightTest.find("]") + 1]))
-            print(self.EnemiesForCombat(response, literal_eval(fightTest[fightTest.find("["):fightTest.find("]") + 1])))
+            listOfEnemies = self.EnemiesForCombat(response, literal_eval(fightTest[fightTest.find("["):fightTest.find("]") + 1]))
             return 1
         return 0
 
@@ -193,7 +194,9 @@ class modeSwitcher():
             "name/title:value, hp:value, battleSkill:value, damageOutput:value" +\
             "To help you, you can read the story so far. It will be in the text section." +\
             "The name/title is the only one you can probabably find in the story. The other values you have to come up with yourself." +\
-            "Use the name/title of the character, and the examples below to generate the values. Try to be realistic. A bear should be much stronger than a human. A goblin should be slightly weaker than a human, etc."    
+            "Use the name/title of the character, and the examples below to generate the values. Try to be realistic. A bear should be much stronger than a human. A goblin should be slightly weaker than a human, etc."  +\
+            "Use the EXACT format of the exambles given bellow, \{Name:'name', hp:'hp', battleSkill:'battleSkill', damageOutput:'damageOutput'\}"  
+        
         examples = '\n'.join(line for line in ENEMY_EXAMPLES)
 
         prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
@@ -208,9 +211,14 @@ class modeSwitcher():
                                                         top_p=0.95
                                                     )).text
         enemiesList = []
+        print(enemiesString)
         for line in enemiesString.split("\n"):
-            attributes = [a.split(":")[1] for a in line.split(",")]
-            enemiesList.append(Enemy(attributes))
+            if "{" in line:
+                lineToUse = line[line.find("{") + 1:line.find("}")]
+                attributes = [a.split(":")[1] for a in lineToUse.split(",")]
+                enemiesList.append(Enemy(attributes))
+        for e in enemiesList:
+            print(e)
         return enemiesList
 
 if __name__=='__main__':

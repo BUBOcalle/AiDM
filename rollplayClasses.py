@@ -35,12 +35,12 @@ class Enemy:
 
     def __init__(self, array):
         self.name = array[0]
-        self.hp = array[1]
-        self.battleSkill = array[2]
-        self.damageOutput = array[3]
+        self.hp = int(array[1])
+        self.battleSkill = int(array[2])
+        self.damageOutput = int(array[3])
 
     def __str__(self):
-        return f"name: {self.name}, type: {self.type} location: {self.location}, description: {self.description}, battle skill: {self.battleSkill}, damage output: {self.damageOutput}."
+        return f"name: {self.name}, hp:{self.hp}, battle skill: {self.battleSkill}, damage output: {self.damageOutput}."
 
 class npc:
     def __init__(self, name: str, description: str, location: str):

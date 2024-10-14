@@ -14,18 +14,18 @@ DM = storyTeller()
 state = stateOfTheGame()
 modes = modeSwitcher()
 
-inCombat = 0
 
 def interactionLoop(inputs, history):
-    if inCombat == 0:
+    if modes.inCombat == 0:
         response = DM.generateResponse(inputs, state)
         state.updateGameState()
 
         # state.generateLongTermHistory(state.recent_history)
         print("Combat?")
-        inCombat = modes.newMode(response)
+        modes.inCombat = modes.newMode(response)
         return response
-    elif inCombat == 1:
+    elif modes.inCombat == 1:
+        #Fightingmode
         pass
 
 
