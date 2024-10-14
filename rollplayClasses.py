@@ -20,7 +20,7 @@ class Hero:
         self.weapons = weapons
 
     def __str__(self):
-        return f"name: {self.name}, type: {self.type} location: {self.location}, description: {self.description}, battle skill: {self.battleSkill}."
+        return f"name: {self.name}, type: {self.type} location: {self.location}, description: {self.description}, battle skill: {self.battleSkill}, weapons: {[str(weapon) for weapon in self.weapons]}."
 
 class Enemy:
     def __init__(self, type: str, name: str, hp: int, battleSkill: int, location: str, description: str, damageOutput: int):

@@ -1,24 +1,24 @@
 import gradio as gr
 import random
 import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import os
-from dotenv import load_dotenv
 import PIL
 from rollplayClasses import *
 from Ais import *
 
-load_dotenv()
 genai.configure(api_key=os.environ["API_KEY"])
 
 DM = storyTeller()
+state = stateOfTheGame()
 infoFetcher = infoFetcherAi()
 
 def interactionLoop(inputs, history):
-    lastResponse = DM.response(inputs, history)
-    print(lastResponse)
-    infoFetcher.newCharacterEncountered(DM.NPCs, DM.enemies, lastResponse)
-    return lastResponse
+    currentState = str(state)
+    response = DM.generateResponse(inputs, currentState)
+    # lastResponse = DM.response(inputs, history)
+    # print(lastResponse)
+    # infoFetcher.newCharacterEncountered(DM.NPCs, DM.enemies, lastResponse)
+    return response
 
 
 with gr.Blocks(fill_height=True) as demo:
