@@ -159,63 +159,6 @@ class storyTeller:
         return response
     
 
-class infoFetcherAi:
-    def __init__(self):
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
-    
-    def __str__(self):
-        pass
-
-    def EnemiesForCombat(self, currentState, lastResponse, enemyList):
-        instructions = "You are a helper to a dungeon master in DnD, and your task is to give reasonable stats to enemies before combat." +\
-            "The enemies should be printed in EXACTLY this format:"+\
-            "name/title:value, hp:value, battleSkill:value, damageOutput:value" +\
-            "To help you, you can read the story so far. It will be in the text section." +\
-            "The name/title is the only one you can probabably find in the story. The other values you have to come up with yourself." +\
-            "Use the name/title of the character, and the examples below to generate the values. Try to be realistic. A bear should be much stronger than a human. A goblin should be slightly weaker than a human, etc."    
-        examples = '\n'.join(line[0] for line in ENEMY_EXAMPLES)
-
-        prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
-            f"<enemiesToGiveStats>\n{enemyList}\n</enemiesToGiveStats>\n\n"+\
-            f"<text>\n{lastResponse}\n</text>\n\n"+\
-            f"<examples>\n{examples}\n</examples>"
-        print(prompt)
-        new_characters = self.model.generate_content(prompt,
-                                                    generation_config=genai.types.GenerationConfig(
-                                                        max_output_tokens=100,
-                                                        temperature=0.0,
-                                                        top_p=0.95
-                                                    )).text
-        return new_characters
-        
-    # def newCharacterEncountered(self, currentState, lastResponse):
-    #     # print("New character?")
-    #     # print(self.model.generate_content([f"ANSWER ONLY YES OR NO, are there any new characters introduced in this prompt, that are NOT in the following lists: {NPC} or {enemies}. Promt: {lastResponse}"],
-    #     #                                 generation_config=genai.types.GenerationConfig(
-    #     #                                 max_output_tokens=10,
-    #     #                                 temperature=0.0,
-    #     #                                 top_p=0.95
-    #     #                                 )).text)
-        
-    #     instructions = "You are a story analyst tasked with finding out if a new piece of the story introduces any new characters. "+\
-    #         "Please provide a list of any NEW characters relevant to the story. Consider the list of known "+\
-    #         "characters below. The text to analyze is found at the bottom. "+\
-    #         "Produce a list on the form: [character1, character2, ...], or simply [] if no new characters were introduced. "
-    #     examples = '\n'.join(f'{text}\n{characters}' for text, characters in NEW_CHARACTER_EXAMPLES)
-
-    #     prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
-    #         f"<characters>\n{currentState.NPCs}\n{currentState.hero}\n</characters>\n\n"+\
-    #         f"<text>\n{lastResponse}\n</text>\n\n"+\
-    #         f"<examples>\n{examples}\n</examples>"
-    #     print(prompt)
-    #     new_characters = self.model.generate_content(prompt,
-    #                                                  generation_config=genai.types.GenerationConfig(
-    #                                                     max_output_tokens=100,
-    #                                                     temperature=0.0,
-    #                                                     top_p=0.95
-    #                                                  )).text
-    #     return new_characters
-
 
 class modeSwitcher():
     def __init__(self):
