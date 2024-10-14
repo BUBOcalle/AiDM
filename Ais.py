@@ -129,7 +129,7 @@ class infoFetcherAi:
     def __str__(self):
         pass
 
-    def EnemiesForCombat(self, currentState, lastResponse):
+    def EnemiesForCombat(self, currentState, lastResponse, enemyList):
         instructions = "You are a helper to a dungeon master in DnD, and your task is to give reasonable stats to enemies before combat." +\
             "The enemies should be printed in EXACTLY this format:"+\
             "name/title:value, hp:value, battleSkill:value, damageOutput:value" +\
@@ -139,7 +139,7 @@ class infoFetcherAi:
         examples = '\n'.join(line[0] for line in ENEMY_EXAMPLES)
 
         prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
-            f"<characters>\n{currentState.NPCs}\n{currentState.hero}\n</characters>\n\n"+\
+            f"<enemiesToGiveStats>\n{enemyList}\n</enemiesToGiveStats>\n\n"+\
             f"<text>\n{lastResponse}\n</text>\n\n"+\
             f"<examples>\n{examples}\n</examples>"
         print(prompt)
@@ -201,19 +201,7 @@ class modeSwitcher():
                                                 }).text
         
         if fightTest[0] == "[":
-            print(fightTest)
-            self.model.generate_content(f"Give the following enemies stats: ",
-                                                generation_config=genai.types.GenerationConfig(
-                                                    max_output_tokens=1000,
-                                                    temperature=0.0,
-                                                    top_p=0.95
-                                                ),
-                                                safety_settings={
-                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                                                }).text
+            print
         #start combat
         pass
 
