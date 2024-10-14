@@ -56,23 +56,29 @@ def enemyTurn(hero: Hero, enemies: list[Enemy]):
     update = f""
     for enemy in enemies:
         enemyHits = rollDice(enemy.battleSkill)
+        #print(f"{enemy.name} got {enemyHits} hits.")
         heroHits = rollDice(hero.battleSkill)
+        #print(f"{hero.name} got {heroHits} hits.")
         diff = enemyHits - heroHits
         if diff > 0:
             hero.hp -= enemy.damageOutput + diff
-            update += f"\n{enemy.name} did {enemy.damageOutput + diff} damage to {hero.name}!"
+            update += f"\n{enemy.name} did {enemy.damageOutput + diff} damage to {hero.name}, who now has {hero.hp} hp!"
+        else:
+            update+=f"\n{enemy.name} tries to attack {hero.name}, but misses!"
     return update
 
 def heroAttackTurn(hero: Hero, enemy: Enemy, currentWeapon):
     update = f""
     heroHits = rollDice(hero.battleSkill)
+    #print(f"{hero.name} got {heroHits} hits.")
     enemyHits = rollDice(enemy.battleSkill)
+    #print(f"{enemy.name} got {enemyHits} hits.")
     diff = heroHits - enemyHits
     if diff > 0:
         enemy.hp -= currentWeapon.damage + diff
         update += f"\n{hero.name} did {currentWeapon.damage + diff} damage to {enemy.name}!"
     else:
-        update += f"\n{enemy.name} tries to attack {hero.name}, but misses!"
+        update += f"\n{hero.name} tries to attack {enemy.name}, but misses!"
     return update
 
 class CombatScene:
@@ -84,37 +90,55 @@ class CombatScene:
     
     def combat(self):
         combatStillGoing = 1
+        print(f"Combat has started. {self.hero.name} is facing:")
+        for enemy in self.enemies:
+            print(enemy.name)
         while combatStillGoing:
             update = f""
             if self.turn == "enemies":
+                print(f"It's the enemies' turn!")
                 update += enemyTurn(self.hero, self.enemies)
                 if self.hero.hp <= 0:
                     update += "\nYou died."
                     combatStillGoing = 0
             else:
-                # check hero action
-                heroAction = "attack" # get from input
-                if heroAction == "attack":
-                    target = Enemy() #from input
-                    update += heroAttackTurn(self.hero, target, self.currentWeapon)
-                    if target.hp <= 0:
-                        self.enemies.remove(target)
-                        update += f"\n{target.name} is dead."
-                    if len(self.enemies) == 0:
-                        update += "\nYou have killed all the enemies. The battle is won!"
-                        combatStillGoing = 0
-                else:
-                    allowedToFlee = 1 # get from ai # StoryTeller asks where you want to flee and if it makes sense it lets you
-                    if allowedToFlee:
-                        update += "\nYou flee the scene" 
-                        combatStillGoing = 0
+                print(f"It's your turn!")
+                while True:
+                    heroAction = input("Would you like to attack someone or flee?\n")
+                    actionCommand = heroAction.split(" ")
+                    if actionCommand[0] == "attack":
+                        targetName = actionCommand[1]
+                        target = 0
+                        for enemy in self.enemies:
+                            if enemy.name == targetName:
+                                target = enemy
+                                break
+                        if target == 0:
+                            print(f"There is no enemy called {targetName}. Try again!")
+                        else:
+                            update += heroAttackTurn(self.hero, target, self.currentWeapon)
+                            if target.hp <= 0:
+                                self.enemies.remove(target)
+                                update += f"\n{target.name} is dead."
+                            if len(self.enemies) == 0:
+                                update += "\nYou have killed all the enemies. The battle is won!"
+                                combatStillGoing = 0
+                            break
+                    elif actionCommand[0] == "flee":
+                        allowedToFlee = 1 # get from ai # StoryTeller asks where you want to flee and if it makes sense it lets you
+                        if allowedToFlee:
+                            update += "\nYou flee the scene" 
+                            combatStillGoing = 0
+                        else:
+                            update += "\nYou look around for a flight path but can't find one and waste your turn."
+                        break
                     else:
-                        update += "\nYou look around for a flight path but can't find one and waste your turn."
+                        print("You have not formatted your command correctly. Write either:\nattack [enemy]\nor\nflee")
             if self.turn == "enemies":
                 self.turn = "hero"
             else:
                 self.turn = "enemies"
-            # send update to storyTeller
-        # Notify storyTeller of end of combat scene
+            print(update)
+        print("Combat has ended <3")
 
     
