@@ -2,7 +2,9 @@ from rollplayClasses import *
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 genai.configure(api_key=os.environ["API_KEY"])
 
 
