@@ -17,12 +17,14 @@ modes = modeSwitcher()
 
 def interactionLoop(inputs, history):
     response = DM.generateResponse(inputs, state)
+    image = DM.generateImage(state)
     state.updateGameState()
 
     # state.generateLongTermHistory(state.recent_history)
     print("Combat?")
     print(modes.newMode(response))
-    return response
+
+    return response, image
 
 
 with gr.Blocks(fill_height=True) as demo:
