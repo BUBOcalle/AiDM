@@ -4,6 +4,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import os
 import ast, json
 from dotenv import load_dotenv
+from ast import literal_eval
 
 from EnemyExamples import EXAMPLES as ENEMY_EXAMPLES
 
@@ -325,7 +326,8 @@ class infoFetcherAi:
 class modeSwitcher():
     def __init__(self):
         self.model = genai.GenerativeModel("gemini-1.5-flash")
-    
+        self.inCombat = 0
+
     def __str__(self):
         pass
 
