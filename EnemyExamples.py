@@ -1,11 +1,11 @@
 from rollplayClasses import Enemy
 
 EXAMPLES = [
-    'name/title:Thief, hp:12, battleSkill:10, damageOutput:3', 
-    'name/title:Bear, hp:20, battleSkill:10, damageOutput:5',
-    'name/title:Goblin, hp:7, battleSkill:5, damageOutput:2',
-    'name/title:Dragon, hp:100, battleSkill:30, damageOutput:8',
-    'name/title:Knight, hp:15, battleSkill:12, damageOutput:4'
+    '{\nenemies: \n[\n{\nname:Thief, \nhp:12, \nbattleSkill:10, \ndamageOutput:3\n},\n', 
+    '{\nname:Bear, \nhp:20, \nbattleSkill:10, \ndamageOutput:5\n},\n',
+    '{\nname:Goblin, \nhp:7, \nbattleSkill:5, \ndamageOutput:2\n},\n',
+    '{\nname:Dragon, \nhp:100, \nbattleSkill:30, \ndamageOutput:8\n},\n',
+    '{\nname:Knight, \nhp:15, \nbattleSkill:12, \ndamageOutput:4\n]\n}\n'
 ]
 
 if __name__ == "__main__":

@@ -15,37 +15,15 @@ genai.configure(api_key=os.environ["API_KEY"])
 class stateOfTheGame():
     def __init__(self):
         self.hero = Hero(type="hero", name="Calle Dachalin", hp=10, battleSkill=6, location="the tavern", description="a tall blonde man with a destiny", equipment=["his favourite book", "flint and steel", "some beer"], weapons=[Weapon(3, "Mighty stick")])
-        # self.enemiesInScenes = {"the tavern":[]}
-        # self.NPCInScenes = {"the tavern":[]}
-        # self.enemies = []
-        # self.NPCs = []
         self.recent_history = []
         self.history = []
         self.model = genai.GenerativeModel("gemini-1.5-flash",
                                            system_instruction="You are a helper who aids a DM of a DnD game by providing various information and summarizations.")
-        # self.stringRepresentationOfData = f"""Hero: {self.hero},
-        #                                     Location: {self.hero.location},
-        #                                     Enemies in scene: {self.enemiesInScenes},
-        #                                     NPCs in scene: {self.NPCInScenes},
-        #                                     """
+        self.enemies = None # This is maybe temporary fix? Idk if this is the best way to implement it. If we do it like this, we need to set enemies to none again after the battle is done. 
         
 
     def __str__(self) -> str:
-        # description = self.model.generate_content(["Given the following data explain the state of the game", self.stringRepresentationOfData],
-        #                                 generation_config=genai.types.GenerationConfig(
-        #                                 max_output_tokens=1000,
-        #                                 temperature=0.0,
-        #                                 top_p=0.95
-        #                                 ),
-        #                                 safety_settings={
-        #                                         HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-        #                                         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-        #                                         HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-        #                                         HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-        #                                     }).text
-
         description = f'Heroes: {self.hero} \nLocation: {self.hero.location}'
-
         return description
     
 
@@ -91,7 +69,7 @@ class stateOfTheGame():
         prompt = f"<instructions>\n{instructions}\n<\instructions>\n\n"+\
             f"<event>\n{recent_history_str}\n</event>\n\n"+\
             f"<current state>\n{state}\n</current state>\n\n"
-        print(prompt)
+        # print(prompt)
         item_update = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
                                                 max_output_tokens=1000,
@@ -127,7 +105,8 @@ class stateOfTheGame():
             raise ValueError(f"Validation error: {e}")
         
         for item in new_equipment:
-            self.hero.equipment.append(item)
+            if item not in self.hero.equipment:
+                self.hero.equipment.append(item)
 
         for item in lost_equipment:
             if item not in self.hero.equipment:
@@ -148,7 +127,8 @@ class stateOfTheGame():
                 if not damage_part.startswith("damage:"):
                     raise ValueError("Missing 'damage:' prefix.")
                 damage = int(damage_part.split("damage:")[1].strip())
-                self.hero.weapons.append(Weapon(damage, name))
+                if not any(weapon.name == name and weapon.damage == damage for weapon in self.hero.weapons):
+                    self.hero.weapons.append(Weapon(damage, name))
             except ValueError as e:
                 raise ValueError(f"Error parsing string: {e}")
         
@@ -193,7 +173,7 @@ class stateOfTheGame():
             f"<events>\n{recent_history_str}\n</events>\n\n"+\
             f"<last location>\n{self.hero.location}\n</last location>\n\n"+\
             f"<examples>\n{examples}\n</examples>\n\n"
-        print(prompt)
+        # print(prompt)
         location_update = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
                                                 max_output_tokens=1000,
@@ -220,12 +200,10 @@ class stateOfTheGame():
         print(self)
 
 
-
 class storyTeller:
     def __init__(self):
         self.model = genai.GenerativeModel("gemini-1.5-flash",
                                            system_instruction="You are the dungeon master in an epic DnD campaign!")
-        self.image_model = genai.ImageGenerationModel("imagen-3.0-generate-001")
 
     def __str__(self):
         pass
@@ -234,7 +212,7 @@ class storyTeller:
         # Don't let the adventurer spawn new characters
         instructions = "You are the dungeon master telling the epic story of a DND adventure. Please tell the adventurer about the next scene in their mystical story. "+\
             "Consider the current state of the adventure and the history of what has happened so far. Like any good DM, you let the hero make "+\
-            "their own decisions in any conversations and other actions, you do not speak for the hero. However, don't let the hero perform unrealistic "+\
+            "their own decisions in any conversations and other actions, you do not ever speak for the hero. However, don't let the hero perform unrealistic "+\
             "actions given thier character description. For instance, a knight typically cannot perform magic spells. "+\
             "The adventurer must follow your pace of the story. They are not allowed to fast-forward through events by dictating the story. "+\
             "You, the DM, control the story and will let the adventurers know if they attempt to take control of the unfolding events. "+\
@@ -249,7 +227,7 @@ class storyTeller:
             f"<history>\n{history_str}\n{recent_history_str}\n</history>\n\n"+\
             f"<input>\n{inputs['text']}\n</input>"
         
-        print(prompt)
+        # print(prompt)
 
         return prompt
 
@@ -272,55 +250,6 @@ class storyTeller:
         state.recent_history.append((f"Input: {inputs['text']}", f'DM: {response}'))
 
         return response
-    
-
-    def generateImage(self, state):
-        instructions = "Generate a fantasy-style image accompanying the event in the scene below of a DnD adventure"
-        scene = state.recent_history[-1][1]
-
-        prompt = f"<instructions>\n{instructions}\n<\instructions>\n\n"+\
-            f"<scene>\n{scene}\n</scene>"
-        
-        image = self.image_model.generate_images(
-            prompt=prompt,
-            number_of_images=1,
-            safety_filter_level="block_only_high",
-            person_generation="allow_adult",
-            aspect_ratio="3:4",
-            negative_prompt="Outside",
-        )
-
-        return image
-    
-
-class infoFetcherAi:
-    def __init__(self):
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
-    
-    def __str__(self):
-        pass
-
-    def EnemiesForCombat(self, currentState, lastResponse, enemyList):
-        instructions = "You are a helper to a dungeon master in DnD, and your task is to give reasonable stats to enemies before combat." +\
-            "The enemies should be printed in EXACTLY this format:"+\
-            "name/title:value, hp:value, battleSkill:value, damageOutput:value" +\
-            "To help you, you can read the story so far. It will be in the text section." +\
-            "The name/title is the only one you can probabably find in the story. The other values you have to come up with yourself." +\
-            "Use the name/title of the character, and the examples below to generate the values. Try to be realistic. A bear should be much stronger than a human. A goblin should be slightly weaker than a human, etc."    
-        examples = '\n'.join(line[0] for line in ENEMY_EXAMPLES)
-
-        prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
-            f"<enemiesToGiveStats>\n{enemyList}\n</enemiesToGiveStats>\n\n"+\
-            f"<text>\n{lastResponse}\n</text>\n\n"+\
-            f"<examples>\n{examples}\n</examples>"
-        print(prompt)
-        new_characters = self.model.generate_content(prompt,
-                                                    generation_config=genai.types.GenerationConfig(
-                                                        max_output_tokens=100,
-                                                        temperature=0.0,
-                                                        top_p=0.95
-                                                    )).text
-        return new_characters
 
 
 class modeSwitcher():
@@ -331,8 +260,12 @@ class modeSwitcher():
     def __str__(self):
         pass
 
-    def newMode(self, response):
-        fightTest = self.model.generate_content(f"Did this encounter start a combat or a fight? Encounter: {response}. IF NO PRINT 'NO.', IF YES PRINT A LIST OF THE ENEMIES IN THE ENCOUNTEREr IN THE FORM ['enemie1', 'enemie2']",
+    def newMode(self, response, state):
+        prompt = f"Did this encounter start a combat or a fight? Encounter: {response}. "+\
+            "IF NO PRINT 'NO.', IF YES PRINT A LIST OF THE ENEMIES IN THE ENCOUNTER IN THE FORM ['enemy1', 'enemy2']. "+\
+            "Each and every enemy in the encounter must be named. For instance, if there are a group of goblins, they "+\
+            "may be named goblin1, goblin2 and goblin3. "
+        fightTest = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
                                                     max_output_tokens=1000,
                                                     temperature=0.0,
@@ -344,9 +277,46 @@ class modeSwitcher():
                                                     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
                                                     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
                                                 }).text
-        
-        if fightTest[0] == "[":
-            print
-        #start combat
-        pass
+        print(fightTest)
+
+        if "[" in fightTest and "]" in fightTest:
+            try:
+                enemyList = literal_eval(fightTest[fightTest.find("["):fightTest.find("]") + 1])
+                enemyStatList = self.EnemiesForCombat(response, enemyList)
+                state.enemies = enemyStatList   # Maybe not the best implementation?
+                print(enemyStatList)
+                return 1
+            except ValueError as e:
+                raise ValueError(f"Error interpreting enemy list: {e}")
+        return 0
+
+
+    def EnemiesForCombat(self, lastResponse, enemyList):
+        instructions = "You are a helper to a dungeon master in DnD, and your task is to give reasonable stats to enemies before combat. " +\
+            "The enemies should be printed in EXACTLY this JSON format:\n"+\
+            "{\nenemies:\n[\nname:string, \nhp:int, \nbattleSkill:int, \ndamageOutput:int\n]\n}\n" +\
+            "Reply with nothing but the JSON, not a single other word. To help you, you can read the story so far. It will be in the text section. "+\
+            "The name field is the only one you can probabably find in the story. The other values you have to come up with yourself. " +\
+            "Use the name of the character, and the examples below to generate the values. Try to be realistic. A bear should be much stronger than a human. A goblin should be slightly weaker than a human. " 
+        examples = '\n'.join(line for line in ENEMY_EXAMPLES)
+
+        prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
+            f"<enemiesToGiveStats>\n{enemyList}\n</enemiesToGiveStats>\n\n"+\
+            f"<text>\n{lastResponse}\n</text>\n\n"+\
+            f"<examples>\n{examples}\n</examples>"
+        # print(prompt)
+        enemiesString = self.model.generate_content(prompt,
+                                                    generation_config=genai.types.GenerationConfig(
+                                                        max_output_tokens=1000,
+                                                        temperature=0.0,
+                                                        top_p=0.95
+                                                    )).text
+        print(enemiesString)
+        enemiesList = []
+        enemy_json = json.loads(enemiesString.strip())
+        print(enemy_json)
+        for enemy in enemy_json['enemies']:
+            attributes = [enemy['name'], enemy['hp'], enemy['battleSkill'], enemy['damageOutput']]
+            enemiesList.append(Enemy(attributes))
+        return enemiesList
 

@@ -18,17 +18,13 @@ modes = modeSwitcher()
 def interactionLoop(inputs, history):
     if modes.inCombat == 0:
         response = DM.generateResponse(inputs, state)
-        image = DM.generateImage(state)
         state.updateGameState()
+        modes.inCombat = modes.newMode(response, state) # For now passed state as function to keep track of enemies
 
-        # state.generateLongTermHistory(state.recent_history)
-        print("Combat?")
-        modes.inCombat = modes.newMode(response)
-
-        return response, image
+        return response
     elif modes.inCombat == 1:
-        #Fightingmode
-        pass
+        combatScene = CombatScene(state.hero, state.hero.weapons[0], state.enemies, "hero")
+        combatScene.combat()
 
 
 with gr.Blocks(fill_height=True) as demo:
