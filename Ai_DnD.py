@@ -15,6 +15,13 @@ state = stateOfTheGame()
 modes = modeSwitcher()
 CS = CombatScene()
 
+
+# introduction = DM.generateResponse({"text": "Begin the adventure!"}, state)
+# state.history = state.recent_history
+# state.recent_history = []
+
+# introduction = 'Test'
+
 def interactionLoop(inputs, history):
     if state.hero.hp <= 0:
         return DM.model.generate_content("Explain for the player how incredibly Dead he is. Explain it in a funny way with some jokes. Don't talk about how he died just that he is dead!",
@@ -29,8 +36,6 @@ def interactionLoop(inputs, history):
                                                     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
                                                     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
                                                 }).text
-    
-
 
     combatStart = ""
     if modes.inCombat == 0:
@@ -53,15 +58,26 @@ def interactionLoop(inputs, history):
         print(inputs)
         output, modes.inCombat = CS.curentCombatState(inputs['text'])
         return output
-    
-    
 
+            #    "#component-0, #component-3, #component-10, #component-8  { height: 100% !important; }"
+
+# with gr.Blocks(title='The Epic Dungeon Master',
+#                css=".contain { display: flex !important; flex-direction: column !important; }"
+#                "#component-1 { height: 100% !important; }"
+#                "#chatbot { flex-grow: 1 !important; overflow: auto !important;}"
+#                "#col { height: 100vh !important; }") as demo:
+#     gr.Markdown("# The Epic Dungeon Master")
 with gr.Blocks(fill_height=True) as demo:
+    # with gr.Row(equal_height=False):
+    #     with gr.Column(scale=1, elem_id='col'):
     chatbot = gr.ChatInterface(
         fn=interactionLoop,
-        title="The Epic Dungeon Master",
-        multimodal=True
+        multimodal=True,
+        title='The Epic Dungeon Master',
+        # chatbot=gr.Chatbot(value=[(None, introduction)],
+        #                 label='The Epic Dungeon Master')
     )
+
 
 if __name__ == "__main__":
     demo.launch()

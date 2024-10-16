@@ -35,28 +35,31 @@ class stateOfTheGame():
     
 
     def generateLongTermHistory(self, history):
-        instructions = "Generate a summary of the events which have unfolded so far. This summary should include any events relevant to the story, "+\
-            "any relevant interactions with characters, any interesting locations, any new equipment discoveries, etc. Below you will find the extended "+\
-            "history which you are to summarize. Please make sure the summary is accurate and based on only what is stated in the history. "
-        history_str = '\n'.join(f'{input}\n{dm}' for input, dm in history)
+        if len(history) == 0:
+            return ""
+        else:
+            instructions = "Generate a summary of the events which have unfolded so far. This summary should include any events relevant to the story, "+\
+                "any relevant interactions with characters, any interesting locations, any new equipment discoveries, etc. Below you will find the extended "+\
+                "history which you are to summarize. Please make sure the summary is accurate and based on only what is stated in the history. "
+            history_str = '\n'.join(f'{input}\n{dm}' for input, dm in history)
 
-        prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
-            f"<history>\n{history_str}\n</history>"
-        
-        history_summary = self.model.generate_content(prompt,
-                                                    generation_config=genai.types.GenerationConfig(
-                                                    max_output_tokens=1000,
-                                                    temperature=0.0,
-                                                    top_p=0.95
-                                                    ),
-                                                    safety_settings={
-                                                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HARM_LEVEL_HATE,
-                                                        HarmCategory.HARM_CATEGORY_HARASSMENT: HARM_LEVEL_HARASSMENT,
-                                                        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HARM_LEVEL_SEXUAL,
-                                                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HARM_LEVEL_DANGEROUS,
-                                                    }).text
+            prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
+                f"<history>\n{history_str}\n</history>"
+            
+            history_summary = self.model.generate_content(prompt,
+                                                        generation_config=genai.types.GenerationConfig(
+                                                        max_output_tokens=1000,
+                                                        temperature=0.0,
+                                                        top_p=0.95
+                                                        ),
+                                                        safety_settings={
+                                                            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HARM_LEVEL_HATE,
+                                                            HarmCategory.HARM_CATEGORY_HARASSMENT: HARM_LEVEL_HARASSMENT,
+                                                            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HARM_LEVEL_SEXUAL,
+                                                            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HARM_LEVEL_DANGEROUS,
+                                                        }).text
 
-        return history_summary
+            return history_summary
     
 
     def updateGameState(self):
@@ -277,7 +280,7 @@ class storyTeller:
             "They may not invent new characters or locations that did not previously exist unless you agree that they should be there.\n\n"+\
             "You're responsible for advancing the story and avoiding getting stuck in the same event, without controlling the actions of the hero. "+\
             "At the bottom, you find the latest input of the adventurers."
-        history_str = '\n'.join(f'{input}\n{dm}' for input, dm in state.history)
+        history_str = '\n\n'.join(events for events in state.history)
         recent_history_str = '\n'.join(f'{input}\n{dm}' for input, dm in state.recent_history)
 
         prompt = f"<instructions>\n{instructions}\n<\instructions>\n\n"+\
