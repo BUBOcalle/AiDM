@@ -21,7 +21,7 @@ def interactionLoop(inputs, history):
         return DM.model.generate_content("Explain for the player how incredibly Dead he is. Explain it in a funny way with some jokes. Don't talk about how he died just that he is dead!",
                                                 generation_config=genai.types.GenerationConfig(
                                                 max_output_tokens=1000,
-                                                temperature=0.5,
+                                                temperature=0.3,
                                                 top_p=0.95
                                                 ),
                                                 safety_settings={

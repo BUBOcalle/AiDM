@@ -21,7 +21,7 @@ HARM_LEVEL_DANGEROUS = HarmBlockThreshold.BLOCK_NONE
 
 class stateOfTheGame():
     def __init__(self):
-        self.hero = Hero(type="hero", name="Calle Dachalin", hp=4, battleSkill=30, location="the tavern", description="a tall blonde man with a destiny", equipment=["his favourite book", "flint and steel", "some beer"], weapons=[Weapon(5, "Mighty stick")])
+        self.hero = Hero(type="hero", name="Calle Dachalin", hp=15, battleSkill=15, location="the tavern", description="a tall blonde man with a destiny", equipment=["his favourite book", "flint and steel", "some beer"], weapons=[Weapon(5, "Mighty stick")])
         self.recent_history = []
         self.history = []
         self.model = genai.GenerativeModel("gemini-1.5-flash",
@@ -296,7 +296,7 @@ class storyTeller:
         response = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
                                                     max_output_tokens=1000,
-                                                    temperature=0.0,
+                                                    temperature=0.3,
                                                     top_p=0.95
                                                 ),
                                                 safety_settings={
