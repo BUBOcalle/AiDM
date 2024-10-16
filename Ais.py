@@ -26,8 +26,8 @@ class stateOfTheGame():
         self.history = []
         self.model = genai.GenerativeModel("gemini-1.5-flash",
                                            system_instruction="You are a professional helper who aids a DM of a DnD game by providing various information and summarizations.")
-        self.enemies = None # This is maybe temporary fix? Idk if this is the best way to implement it. If we do it like this, we need to set enemies to none again after the battle is done. 
-        
+        self.enemies = None 
+
 
     def __str__(self) -> str:
         description = f'Heroes: {self.hero} \nLocation: {self.hero.location}'
@@ -348,7 +348,7 @@ class modeSwitcher():
             try:
                 enemyList = literal_eval(fightTest[fightTest.find("["):fightTest.find("]") + 1])
                 enemyStatList = self.EnemiesForCombat(response, enemyList)
-                state.enemies = enemyStatList   # Maybe not the best implementation?
+                state.enemies = enemyStatList
                 print(enemyStatList)
                 return 1
             except ValueError as e:
