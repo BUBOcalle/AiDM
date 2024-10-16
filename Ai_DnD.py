@@ -50,6 +50,9 @@ def interactionLoop(inputs, history):
             CS.currentWeapon = state.hero.weapons[0]
             CS.enemies = state.enemies
             CS.turn = "hero"
+            history_summary = state.generateLongTermHistory(state.recent_history)
+            state.history.append(history_summary)
+            state.recent_history = []
             combatStart = CS.combatStart()
 
         return response + combatStart
