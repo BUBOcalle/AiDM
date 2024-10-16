@@ -57,6 +57,9 @@ def interactionLoop(inputs, history):
     if modes.inCombat == 1:
         print(inputs)
         output, modes.inCombat = CS.curentCombatState(inputs['text'])
+        # send combatState to history
+        state.history.append(output)
+        print(output)
         return output
 
             #    "#component-0, #component-3, #component-10, #component-8  { height: 100% !important; }"

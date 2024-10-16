@@ -13,15 +13,15 @@ genai.configure(api_key=os.environ["API_KEY"])
 
 
 
-HARM_LEVEL_HATE = HarmBlockThreshold.BLOCK_NONE
-HARM_LEVEL_HARASSMENT = HarmBlockThreshold.BLOCK_NONE
-HARM_LEVEL_SEXUAL = HarmBlockThreshold.BLOCK_NONE
+HARM_LEVEL_HATE = HarmBlockThreshold.BLOCK_ONLY_HIGH
+HARM_LEVEL_HARASSMENT = HarmBlockThreshold.BLOCK_ONLY_HIGH
+HARM_LEVEL_SEXUAL = HarmBlockThreshold.BLOCK_ONLY_HIGH
 HARM_LEVEL_DANGEROUS = HarmBlockThreshold.BLOCK_NONE
 
 
 class stateOfTheGame():
     def __init__(self):
-        self.hero = Hero(type="hero", name="Calle Dachalin", hp=10, battleSkill=6, location="the tavern", description="a tall blonde man with a destiny", equipment=["his favourite book", "flint and steel", "some beer"], weapons=[Weapon(3, "Mighty stick")])
+        self.hero = Hero(type="hero", name="Calle Dachalin", hp=100, battleSkill=60, location="the tavern", description="a tall blonde man with a destiny", equipment=["his favourite book", "flint and steel", "some beer"], weapons=[Weapon(3000, "Mighty stick")])
         self.recent_history = []
         self.history = []
         self.model = genai.GenerativeModel("gemini-1.5-flash",

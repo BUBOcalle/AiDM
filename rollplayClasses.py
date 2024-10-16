@@ -98,58 +98,6 @@ class CombatScene:
     def __init__(self):
         self.combatState = "default"
     
-    def combat(self):
-        combatStillGoing = 1
-        print(f"Combat has started. {self.hero.name} is facing:")
-        for enemy in self.enemies:
-            print(enemy.name)
-        while combatStillGoing:
-            update = f""
-            if self.turn == "enemies":
-                print(f"It's the enemies' turn!")
-                update += enemyTurn(self.hero, self.enemies)
-                if self.hero.hp <= 0:
-                    update += "\nYou died."
-                    combatStillGoing = 0
-            else:
-                print(f"It's your turn!")
-                while True:
-                    heroAction = input("Would you like to attack someone or flee?\n")
-                    actionCommand = heroAction.split(" ")
-                    if actionCommand[0] == "attack":
-                        targetName = actionCommand[1]
-                        target = 0
-                        for enemy in self.enemies:
-                            if enemy.name == targetName:
-                                target = enemy
-                                break
-                        if target == 0:
-                            print(f"There is no enemy called {targetName}. Try again!")
-                        else:
-                            update += heroAttackTurn(self.hero, target, self.currentWeapon)
-                            if target.hp <= 0:
-                                self.enemies.remove(target)
-                                update += f"\n{target.name} is dead."
-                            if len(self.enemies) == 0:
-                                update += "\nYou have killed all the enemies. The battle is won!"
-                                combatStillGoing = 0
-                            break
-                    elif actionCommand[0] == "flee":
-                        allowedToFlee = 1 # get from ai # StoryTeller asks where you want to flee and if it makes sense it lets you
-                        if allowedToFlee:
-                            update += "\nYou flee the scene" 
-                            combatStillGoing = 0
-                        else:
-                            update += "\nYou look around for a flight path but can't find one and waste your turn."
-                        break
-                    else:
-                        print("You have not formatted your command correctly. Write either:\nattack [enemy]\nor\nflee")
-            if self.turn == "enemies":
-                self.turn = "hero"
-            else:
-                self.turn = "enemies"
-            print(update)
-        print("Combat has ended <3")
 
     
     def combatStart(self):
@@ -182,7 +130,7 @@ class CombatScene:
                     self.enemies.remove(target)
                     update += f"\n{target.name} is dead."
                 if len(self.enemies) == 0:
-                    update += "\nYou have killed all the enemies. The battle is won!"
+                    update += "\nYou have killed all the enemies. The battle is won!\nWhat do you do?"
                     return update, 0
             else:
                 if(len(actionCommand) == 1 or len(actionCommand[1]) < 2):
@@ -194,7 +142,7 @@ class CombatScene:
         elif "flee" in actionCommand:
             allowedToFlee = 1 # get from ai # StoryTeller asks where you want to flee and if it makes sense it lets you
             if allowedToFlee:
-                update += "\nYou flee the scene" 
+                update += "\nYou flee the scene!\nWhat do you do?" 
                 return update, 0
             else:
                 update += "\nYou look around for a flight path but can't find one and waste your turn."
@@ -205,7 +153,7 @@ class CombatScene:
         update += f"\nIt's the enemies' turn!\n"
         update += enemyTurn(self.hero, self.enemies)
         if self.hero.hp <= 0:
-            update += "\nYou died."
+            update += "\nYou died. :("
             return update, 0
 
         return update, 1
