@@ -52,6 +52,9 @@ def interactionLoop(inputs, history):
     if modes.inCombat == 1:
         print(inputs)
         output, modes.inCombat = CS.curentCombatState(inputs['text'])
+        # send combatState to history
+        state.history.append(output)
+        print(output)
         return output
     
     

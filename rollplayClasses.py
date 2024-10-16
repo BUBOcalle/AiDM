@@ -131,32 +131,32 @@ class CombatScene:
                     update += f"\n{target.name} is dead."
                 if len(self.enemies) == 0:
                     update += "\nYou have killed all the enemies. The battle is won!\nWhat do you do?"
-                    return update, 0, 0
+                    return update, 0
             else:
                 if(len(actionCommand) == 1 or len(actionCommand[1]) < 2):
                     self.combatState = "targetChoose"
-                    return "Who do you want to attack?", 1, -1
+                    return "Who do you want to attack?", 1
                 else:
                     self.combatState = "targetChoose"
-                    return "that enemy is not in the list of enemies, who do you want to attack?", 1, -1
+                    return "that enemy is not in the list of enemies, who do you want to attack?", 1
         elif "flee" in actionCommand:
             allowedToFlee = 1 # get from ai # StoryTeller asks where you want to flee and if it makes sense it lets you
             if allowedToFlee:
                 update += "\nYou flee the scene!\nWhat do you do?" 
-                return update, 0, 1
+                return update, 0
             else:
                 update += "\nYou look around for a flight path but can't find one and waste your turn."
         else:
-            return "You have not formatted your command correctly. Write either:\nattack [enemy]\nor\nflee", 1, -1
+            return "You have not formatted your command correctly. Write either:\nattack [enemy]\nor\nflee", 1
             
         #ENEMY TURN  
         update += f"\nIt's the enemies' turn!\n"
         update += enemyTurn(self.hero, self.enemies)
         if self.hero.hp <= 0:
             update += "\nYou died. :("
-            return update, 0, 2
+            return update, 0
 
-        return update, 1, -1
+        return update, 1
         
     
 
