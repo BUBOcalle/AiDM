@@ -30,7 +30,7 @@ def interactionLoop(inputs, history):
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.ChatInterface(
         fn=interactionLoop,
-        title="The epic dungeon master",
+        title="The Epic Dungeon Master",
         multimodal=True
     )
 

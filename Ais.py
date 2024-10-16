@@ -12,13 +12,20 @@ load_dotenv()
 genai.configure(api_key=os.environ["API_KEY"])
 
 
+
+HARM_LEVEL_HATE = HarmBlockThreshold.BLOCK_ONLY_HIGH
+HARM_LEVEL_HARASSMENT = HarmBlockThreshold.BLOCK_ONLY_HIGH
+HARM_LEVEL_SEXUAL = HarmBlockThreshold.BLOCK_ONLY_HIGH
+HARM_LEVEL_DANGEROUS = HarmBlockThreshold.BLOCK_NONE
+
+
 class stateOfTheGame():
     def __init__(self):
         self.hero = Hero(type="hero", name="Calle Dachalin", hp=10, battleSkill=6, location="the tavern", description="a tall blonde man with a destiny", equipment=["his favourite book", "flint and steel", "some beer"], weapons=[Weapon(3, "Mighty stick")])
         self.recent_history = []
         self.history = []
         self.model = genai.GenerativeModel("gemini-1.5-flash",
-                                           system_instruction="You are a helper who aids a DM of a DnD game by providing various information and summarizations.")
+                                           system_instruction="You are a professional helper who aids a DM of a DnD game by providing various information and summarizations.")
         self.enemies = None # This is maybe temporary fix? Idk if this is the best way to implement it. If we do it like this, we need to set enemies to none again after the battle is done. 
         
 
@@ -43,10 +50,10 @@ class stateOfTheGame():
                                                     top_p=0.95
                                                     ),
                                                     safety_settings={
-                                                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                                                        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                                                        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                                                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HARM_LEVEL_HATE,
+                                                        HarmCategory.HARM_CATEGORY_HARASSMENT: HARM_LEVEL_HARASSMENT,
+                                                        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HARM_LEVEL_SEXUAL,
+                                                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HARM_LEVEL_DANGEROUS,
                                                     }).text
 
         return history_summary
@@ -55,20 +62,25 @@ class stateOfTheGame():
     def updateGameState(self):
         # Did the hero recieve or lose any equipment or weapons?
         instructions = "Please help the DM determine if the hero lost or acquired any equipment or weapons by examining the latest event in the adventure. "+\
-            "Carefully consider the information below, a description of the event and the current state of the character, including their current equipment and weapons. "+\
+            "Carefully consider the information below, a description of what has happened so far and the current equipment and weapons of the character. "+\
+            "You need to examine the last part of the history and determine if the hero's equipment or weapons have changed. "+\
             "Provide four lists in JSON format:\n{\nnew_equipment: [item1, item2, ...],\nlost_equipment: [item1, item2, ...],\nnew_weapons: [weapon1, weapon2, ...],\n lost_weapons: [weapon1, weapon2, ...]\n}"+\
             "If no equipment or weapon is lost or gained, reply with empty lists in the JSON. Any lost equipment or weapons must match the exact name in the current hero state. "+\
-            "Any new equipment or weapons should not already exist in the hero's equipment or weapon list. Make sure that the hero is truly in possesion of a new item before adding them, "+\
-            "for instance the hero is not in possession of something he wants to buy until he has paid or stolen the item. "+\
-            "Make sure that the hero is truly no longer in possession of one of their items before removing them. Note that a weapon is not considered to be an equipment and should only "+\
+            "Any new equipment or weapons should not already exist in the hero's equipment or weapon list. It is important that the hero is truly in possesion of a new item before adding them to the list. "+\
+            "It is important that the hero is truly no longer in possession of one of their items before removing them. "+\
+            "Don't make your decisions preemptively, they may for example receive an item in the next event if they are about to in the current event. "+\
+            "Note that a weapon is not considered to be an equipment and should only "+\
             "be added to one list. The hero may carry multiple weapons at once, an old weapon is not lost simply because the hero acquires a new one. "+\
-            "Reply with ONLY the JSON, no other words, empty spaces, blank lines or anything else. "
-        recent_history_str = f"{self.recent_history[-1][1]}"
-        state = str(self)
+            "Reply with ONLY the JSON, no other words, empty spaces, blank lines or anything else."
+        recent_event_str = f"{self.recent_history[-1][1]}"
+        recent_history_str = '\n'.join(f'{input}\n{dm}' for input, dm in self.recent_history[:-1])
+        # state = str(self)
 
         prompt = f"<instructions>\n{instructions}\n<\instructions>\n\n"+\
-            f"<event>\n{recent_history_str}\n</event>\n\n"+\
-            f"<current state>\n{state}\n</current state>\n\n"
+            f"<history>\n{recent_history_str}\n</history>\n\n"+\
+            f"<latest event>\n{recent_event_str}\n</latest event>\n\n"+\
+            f"<current equipment>\n{self.hero.equipment}\n</current equipment>\n\n"+\
+            f"<current weapons>\n{self.hero.weapons}\n</current weapons>"
         # print(prompt)
         item_update = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
@@ -77,13 +89,17 @@ class stateOfTheGame():
                                                 top_p=0.95
                                                 ),
                                                 safety_settings={
-                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HARM_LEVEL_HATE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HARM_LEVEL_HARASSMENT,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HARM_LEVEL_SEXUAL,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HARM_LEVEL_DANGEROUS,
                                                 }).text
+        
+        print("\nItem updates")
+        print(item_update)
 
         try:
+            item_update = item_update[item_update.find('{'):item_update.rfind('}')+1]
             item_json = json.loads(item_update)
             required_keys = ['new_equipment', 'lost_equipment', 'new_weapons', 'lost_weapons']
             if not isinstance(item_json, dict):
@@ -153,7 +169,8 @@ class stateOfTheGame():
 
 
         # Did the location of the hero change?
-        instructions = "You are a very professional assistant who helps the DM with various tasks. Please help the DM determine the current location of the hero. "+\
+        # instructions = "You are a very professional assistant who helps the DM with various tasks. Please help the DM determine the current location of the hero. "+\
+        instructions = "Please help the DM determine the current location of the hero. "+\
             "Consider the latest event in the adventure and the last location of the hero below. It is important that your response describes the true and current "+\
             "location of the hero, and not the location of someone else, a potential future location, topic of a conversation or similar. Only the current location of the hero. "+\
             "Reply with the updated location only. If the location has not changed compared to the last location, reply with the last location. Consider the examples "+\
@@ -181,22 +198,61 @@ class stateOfTheGame():
                                                 top_p=0.95
                                                 ),
                                                 safety_settings={
-                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HARM_LEVEL_HATE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT:  HARM_LEVEL_HARASSMENT,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HARM_LEVEL_SEXUAL,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HARM_LEVEL_DANGEROUS,
                                                 }).text
         
+        print("\nLocation updates")
+        print(location_update)
+
         try:
             location = location_update.strip().strip('"').strip()
             self.hero.location = location
         except ValueError as e:
             raise ValueError(f"Error parsing new location: {e}")
+        
+        # Should the recent history be summarized and added to the long term history instead?
+        instructions = "Please help the DM determine the latest event marks a milestone in the story. "+\
+            "Examine the latest event in the adventure below and determine if a milestone has been reached. A milestone may for example be reached with a change of location "+\
+            "or if the latest event describes a significant amount of time having passed. Reply with only the letter 'y' for yes or 'n' for no, no other letters or words. "+\
+            "A milestone can never be reached in the middle of a conversation. Consider the examples below when formulating your response. Has a milestone in the story been reached? "
+        recent_history_str = self.recent_history[-1][1]
+        examples = """event: The stranger leans closer, his shadowed face inches from yours. "I know what you seek," he whispers, his voice barely audible above the tavern's din. "The artifact, the relic of ancient magic. I can lead you to it, but the price is steep." He pauses, letting the weight of his words hang in the air. "You must help me with a task, a dangerous one. In return, I will guide you to the artifact and reveal its secrets."\n\nHe pulls back, his eyes glinting in the dim light. "What do you say, Calle Dachalin? Will you accept my proposition?" """+\
+            "assistant: 'n'"+\
+            """event: The tavern door creaks open, letting in a gust of cool night air. The scent of woodsmoke and damp earth replaces the stale air of the tavern. You step out into the bustling marketplace, the sounds of haggling merchants and the clatter of hooves on cobblestones filling the air. The moon hangs high in the sky, casting long shadows across the cobbled streets.\n\nThe tavern is situated on the edge of the marketplace, with a narrow alleyway leading to the back of the building. Beyond the alley, you can see the dark silhouette of the Whispering Woods, its trees reaching up like gnarled fingers towards the moonlit sky.\n\nThe air is thick with the scent of woodsmoke and damp earth, and you can hear the distant howl of a wolf echoing through the trees."""+\
+            "assistant: 'y'"
 
-        print(item_update)
+        prompt = f"<instructions>\n{instructions}\n<\instructions>\n\n"+\
+            f"<event>\n{recent_history_str}\n</event>\n\n"+\
+            f"<examples>\n{examples}\n</examples>"
+        # print(prompt)
+        milestone_reached = self.model.generate_content(prompt,
+                                                generation_config=genai.types.GenerationConfig(
+                                                max_output_tokens=10,
+                                                temperature=0.0,
+                                                top_p=0.95
+                                                ),
+                                                safety_settings={
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HARM_LEVEL_HATE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HARM_LEVEL_HARASSMENT,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HARM_LEVEL_SEXUAL,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HARM_LEVEL_DANGEROUS,
+                                                }).text
+        
+        print("\nHas a milestone been reached?")
+        print(milestone_reached)
 
-        print(location_update)
+        try:
+            if milestone_reached.strip().lower() == 'y':
+                history_summary = self.generateLongTermHistory(self.recent_history[:-1])
+                self.history.append(history_summary)
+                self.recent_history = [self.recent_history[-1]]
+        except ValueError as e:
+            raise ValueError(f"Error parsing milestone check: {e}")
 
+        print("\nCurrent state:")
         print(self)
 
 
@@ -210,15 +266,17 @@ class storyTeller:
 
     def createPromt(self, inputs, state):
         # Don't let the adventurer spawn new characters
-        instructions = "You are the dungeon master telling the epic story of a DND adventure. Please tell the adventurer about the next scene in their mystical story. "+\
+        instructions = "You are the dungeon master telling the epic story of a DND adventure. Please describe to the adventurer the next scene in their mystical story. "+\
             "Consider the current state of the adventure and the history of what has happened so far. Like any good DM, you let the hero make "+\
-            "their own decisions in any conversations and other actions, you do not ever speak for the hero. However, don't let the hero perform unrealistic "+\
+            "their own decisions in any conversations and other actions, you do not ever speak or act for the hero. \n\nHowever, don't let the hero perform unrealistic "+\
             "actions given thier character description. For instance, a knight typically cannot perform magic spells. "+\
             "The adventurer must follow your pace of the story. They are not allowed to fast-forward through events by dictating the story. "+\
             "You, the DM, control the story and will let the adventurers know if they attempt to take control of the unfolding events. "+\
             "If they have to walk through a forest to get to a location, they must go through the forest at your pace and deal "+\
             "with any encounters along the way to get there. They may not simply write 'I walked through the forest and arrived at the location'. "+\
-            "They may not invent new characters or locations that did not previously exist unless you agree that they should be there. At the bottom, you find the latest input of the adventurers."
+            "They may not invent new characters or locations that did not previously exist unless you agree that they should be there.\n\n"+\
+            "You're responsible for advancing the story and avoiding getting stuck in the same event, without controlling the actions of the hero. "+\
+            "At the bottom, you find the latest input of the adventurers."
         history_str = '\n'.join(f'{input}\n{dm}' for input, dm in state.history)
         recent_history_str = '\n'.join(f'{input}\n{dm}' for input, dm in state.recent_history)
 
@@ -226,8 +284,6 @@ class storyTeller:
             f"<current state>\n{str(state)}\n</current state>\n\n"+\
             f"<history>\n{history_str}\n{recent_history_str}\n</history>\n\n"+\
             f"<input>\n{inputs['text']}\n</input>"
-        
-        # print(prompt)
 
         return prompt
 
@@ -241,11 +297,14 @@ class storyTeller:
                                                     top_p=0.95
                                                 ),
                                                 safety_settings={
-                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HARM_LEVEL_HATE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HARM_LEVEL_HARASSMENT,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HARM_LEVEL_SEXUAL,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HARM_LEVEL_DANGEROUS,
                                                 }).text
+        
+        print(prompt)
+        print(response)
         
         state.recent_history.append((f"Input: {inputs['text']}", f'DM: {response}'))
 
@@ -264,7 +323,8 @@ class modeSwitcher():
         prompt = f"Did this encounter start a combat or a fight? Encounter: {response}. "+\
             "IF NO PRINT 'NO.', IF YES PRINT A LIST OF THE ENEMIES IN THE ENCOUNTER IN THE FORM ['enemy1', 'enemy2']. "+\
             "Each and every enemy in the encounter must be named. For instance, if there are a group of goblins, they "+\
-            "may be named goblin1, goblin2 and goblin3. "
+            "may be named goblin1, goblin2 and goblin3. It is important that the encounter truly marks the beginning of a combat "+\
+            "or fight. For example someone talking about a fight or dangerous creature does not mean that a battle has started. "
         fightTest = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
                                                     max_output_tokens=1000,
@@ -272,11 +332,13 @@ class modeSwitcher():
                                                     top_p=0.95
                                                 ),
                                                 safety_settings={
-                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HARM_LEVEL_HATE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT: HARM_LEVEL_HARASSMENT,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HARM_LEVEL_SEXUAL,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HARM_LEVEL_DANGEROUS,
                                                 }).text
+        
+        print("\nHas a fight started?")
         print(fightTest)
 
         if "[" in fightTest and "]" in fightTest:
