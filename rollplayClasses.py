@@ -94,6 +94,9 @@ class CombatScene:
         self.currentWeapon = currentWeapon
         self.enemies = enemies
         self.turn = starter
+
+    def __init__(self):
+        self.combatState = "default"
     
     def combat(self):
         combatStillGoing = 1
@@ -149,3 +152,71 @@ class CombatScene:
         print("Combat has ended <3")
 
     
+    def combatStart(self):
+        output = ""
+        output += f"Combat has started! \n\n{self.hero.name} is facing:\n"
+        for enemy in self.enemies:
+            output += enemy.name
+            output += "\n"
+        output += f"\nIt's your turn!\n"
+        output += "\nWould you like to attack someone or flee?\n"
+        return output
+    
+    def inCombat(self, input):
+        update = ""
+        actionCommand = input
+        print(actionCommand)
+        #HERO TURN
+        if "attack" in actionCommand:
+            actionCommand = actionCommand.split("attack ")
+            print(actionCommand)
+            if(len(actionCommand) > 1 and actionCommand[1] in [enemy.name for enemy in self.enemies]):
+                targetName = actionCommand[1]
+                for enemy in self.enemies:
+                    if enemy.name == targetName:
+                        target = enemy
+                        break
+
+                update += heroAttackTurn(self.hero, target, self.currentWeapon)
+                if target.hp <= 0:
+                    self.enemies.remove(target)
+                    update += f"\n{target.name} is dead."
+                if len(self.enemies) == 0:
+                    update += "\nYou have killed all the enemies. The battle is won!"
+                    return update, 0
+            else:
+                if(len(actionCommand) == 1 or len(actionCommand[1]) < 2):
+                    self.combatState = "targetChoose"
+                    return "Who do you want to attack?", 1
+                else:
+                    self.combatState = "targetChoose"
+                    return "that enemy is not in the list of enemies, who do you want to attack?", 1
+        elif "flee" in actionCommand:
+            allowedToFlee = 1 # get from ai # StoryTeller asks where you want to flee and if it makes sense it lets you
+            if allowedToFlee:
+                update += "\nYou flee the scene" 
+                return update, 0
+            else:
+                update += "\nYou look around for a flight path but can't find one and waste your turn."
+        else:
+            return "You have not formatted your command correctly. Write either:\nattack [enemy]\nor\nflee", 1
+            
+        #ENEMY TURN  
+        update += f"\nIt's the enemies' turn!\n"
+        update += enemyTurn(self.hero, self.enemies)
+        if self.hero.hp <= 0:
+            update += "\nYou died."
+            return update, 0
+
+        return update, 1
+        
+    
+
+    def curentCombatState(self, input):
+        if self.combatState == "default":
+            return self.inCombat(input)
+        if self.combatState == "targetChoose":
+            self.combatState = "default"
+            return self.inCombat("attack " + input)
+
+        return "WTF combatstate error", 1

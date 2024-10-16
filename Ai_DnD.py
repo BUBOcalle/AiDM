@@ -13,19 +13,48 @@ genai.configure(api_key=os.environ["API_KEY"])
 DM = storyTeller()
 state = stateOfTheGame()
 modes = modeSwitcher()
-
+CS = CombatScene()
 
 def interactionLoop(inputs, history):
+    if state.hero.hp <= 0:
+        return DM.model.generate_content("Explain for the player how incredibly Dead he is. Explain it in a funny way with some jokes. Don't talk about how he died just that he is dead!",
+                                                generation_config=genai.types.GenerationConfig(
+                                                max_output_tokens=1000,
+                                                temperature=0.5,
+                                                top_p=0.95
+                                                ),
+                                                safety_settings={
+                                                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_HARASSMENT:  HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                                                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                                                }).text
+    
+
+
+    combatStart = ""
     if modes.inCombat == 0:
         response = DM.generateResponse(inputs, state)
         state.updateGameState()
         modes.inCombat = modes.newMode(response, state) # For now passed state as function to keep track of enemies
+        if (modes.inCombat):
+            wdyd = response.find("What do you do?")
+            if(wdyd != -1):
+                response = response[:wdyd]
+            CS.hero = state.hero
+            CS.currentWeapon = state.hero.weapons[0]
+            CS.enemies = state.enemies
+            CS.turn = "hero"
+            combatStart = CS.combatStart()
 
-        return response
-    elif modes.inCombat == 1:
-        combatScene = CombatScene(state.hero, state.hero.weapons[0], state.enemies, "hero")
-        combatScene.combat()
-
+        return response + combatStart
+        
+    if modes.inCombat == 1:
+        print(inputs)
+        output, modes.inCombat = CS.curentCombatState(inputs['text'])
+        return output
+    
+    
 
 with gr.Blocks(fill_height=True) as demo:
     chatbot = gr.ChatInterface(

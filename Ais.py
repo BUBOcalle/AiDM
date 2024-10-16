@@ -13,9 +13,9 @@ genai.configure(api_key=os.environ["API_KEY"])
 
 
 
-HARM_LEVEL_HATE = HarmBlockThreshold.BLOCK_ONLY_HIGH
-HARM_LEVEL_HARASSMENT = HarmBlockThreshold.BLOCK_ONLY_HIGH
-HARM_LEVEL_SEXUAL = HarmBlockThreshold.BLOCK_ONLY_HIGH
+HARM_LEVEL_HATE = HarmBlockThreshold.BLOCK_NONE
+HARM_LEVEL_HARASSMENT = HarmBlockThreshold.BLOCK_NONE
+HARM_LEVEL_SEXUAL = HarmBlockThreshold.BLOCK_NONE
 HARM_LEVEL_DANGEROUS = HarmBlockThreshold.BLOCK_NONE
 
 
