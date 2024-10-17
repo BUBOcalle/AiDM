@@ -130,7 +130,7 @@ class CombatScene:
                     self.enemies.remove(target)
                     update += f"\n{target.name} is dead."
                 if len(self.enemies) == 0:
-                    update += "\nYou have killed all the enemies. The battle is won!\nWhat do you do?"
+                    update += "\nYou have killed all the enemies. The battle is won!\n"#What do you do?"
                     return update, 0
             else:
                 if(len(actionCommand) == 1 or len(actionCommand[1]) < 2):
@@ -142,7 +142,7 @@ class CombatScene:
         elif "flee" in actionCommand:
             allowedToFlee = 1 # get from ai # StoryTeller asks where you want to flee and if it makes sense it lets you
             if allowedToFlee:
-                update += "\nYou flee the scene!\nWhat do you do?" 
+                update += "\nYou flee the scene!\n"#What do you do?" 
                 return update, 0
             else:
                 update += "\nYou look around for a flight path but can't find one and waste your turn."

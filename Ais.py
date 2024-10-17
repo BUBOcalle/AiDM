@@ -2,7 +2,7 @@ from rollplayClasses import *
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import os
-import ast, json
+import json
 from dotenv import load_dotenv
 from ast import literal_eval
 
@@ -60,6 +60,34 @@ class stateOfTheGame():
                                                         }).text
 
             return history_summary
+        
+    
+    def generateCombatSummary(self, history):
+        if len(history) == 0:
+            return ""
+        else:
+            instructions = "Generate a summary of the combat described below. This summary should include any details relevant to the story in which the combat is "+\
+                "taking place, for example if any characters have died, have been greatly injured, etc. Please make sure the summary is accurate and based only on "+\
+                "what is stated in the combat description below. "
+            history_str = '\n'.join(combat_round for combat_round in history)
+            
+            prompt = f"<instructions>\n{instructions}\n</instructions>\n\n"+\
+                f"<combat>\n{history_str}\n</combat>"
+            
+            history_summary = self.model.generate_content(prompt,
+                                                        generation_config=genai.types.GenerationConfig(
+                                                        max_output_tokens=1000,
+                                                        temperature=0.0,
+                                                        top_p=0.95
+                                                        ),
+                                                        safety_settings={
+                                                            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HARM_LEVEL_HATE,
+                                                            HarmCategory.HARM_CATEGORY_HARASSMENT: HARM_LEVEL_HARASSMENT,
+                                                            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HARM_LEVEL_SEXUAL,
+                                                            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HARM_LEVEL_DANGEROUS,
+                                                        }).text
+
+            return history_summary
     
 
     def updateGameState(self):
@@ -77,14 +105,13 @@ class stateOfTheGame():
             "Reply with ONLY the JSON, no other words, empty spaces, blank lines or anything else."
         recent_event_str = f"{self.recent_history[-1][1]}"
         recent_history_str = '\n'.join(f'{input}\n{dm}' for input, dm in self.recent_history[:-1])
-        # state = str(self)
 
         prompt = f"<instructions>\n{instructions}\n<\instructions>\n\n"+\
             f"<history>\n{recent_history_str}\n</history>\n\n"+\
             f"<latest event>\n{recent_event_str}\n</latest event>\n\n"+\
             f"<current equipment>\n{self.hero.equipment}\n</current equipment>\n\n"+\
             f"<current weapons>\n{self.hero.weapons}\n</current weapons>"
-        # print(prompt)
+        
         item_update = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
                                                 max_output_tokens=1000,
@@ -172,7 +199,6 @@ class stateOfTheGame():
 
 
         # Did the location of the hero change?
-        # instructions = "You are a very professional assistant who helps the DM with various tasks. Please help the DM determine the current location of the hero. "+\
         instructions = "Please help the DM determine the current location of the hero. "+\
             "Consider the latest event in the adventure and the last location of the hero below. It is important that your response describes the true and current "+\
             "location of the hero, and not the location of someone else, a potential future location, topic of a conversation or similar. Only the current location of the hero. "+\
@@ -193,7 +219,7 @@ class stateOfTheGame():
             f"<events>\n{recent_history_str}\n</events>\n\n"+\
             f"<last location>\n{self.hero.location}\n</last location>\n\n"+\
             f"<examples>\n{examples}\n</examples>\n\n"
-        # print(prompt)
+        
         location_update = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
                                                 max_output_tokens=1000,
@@ -230,7 +256,7 @@ class stateOfTheGame():
         prompt = f"<instructions>\n{instructions}\n<\instructions>\n\n"+\
             f"<event>\n{recent_history_str}\n</event>\n\n"+\
             f"<examples>\n{examples}\n</examples>"
-        # print(prompt)
+        
         milestone_reached = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
                                                 max_output_tokens=10,
@@ -268,7 +294,6 @@ class storyTeller:
         pass
 
     def createPromt(self, inputs, state):
-        # Don't let the adventurer spawn new characters
         instructions = "You are the dungeon master telling the epic story of a DND adventure. Please describe to the adventurer the next scene in their mystical story. "+\
             "Consider the current state of the adventure and the history of what has happened so far. Like any good DM, you let the hero make "+\
             "their own decisions in any conversations and other actions, you do not ever speak or act for the hero. \n\nHowever, don't let the hero perform unrealistic "+\
@@ -296,7 +321,7 @@ class storyTeller:
         response = self.model.generate_content(prompt,
                                                 generation_config=genai.types.GenerationConfig(
                                                     max_output_tokens=1000,
-                                                    temperature=0.3,
+                                                    temperature=0.1,
                                                     top_p=0.95
                                                 ),
                                                 safety_settings={
@@ -369,7 +394,7 @@ class modeSwitcher():
             f"<enemiesToGiveStats>\n{enemyList}\n</enemiesToGiveStats>\n\n"+\
             f"<text>\n{lastResponse}\n</text>\n\n"+\
             f"<examples>\n{examples}\n</examples>"
-        # print(prompt)
+        
         enemiesString = self.model.generate_content(prompt,
                                                     generation_config=genai.types.GenerationConfig(
                                                         max_output_tokens=1000,
