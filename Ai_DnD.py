@@ -78,7 +78,10 @@ def interactionLoop(inputs, history):
             state.history.append(combat_summary)
             state.recent_history = []
 
-            response = DM.generateResponse({'text': 'I look around. '}, state)
+            # Produce new output at end of battle
+            input = {'text': "Brifly describe the scene after the battle. Don't act out any new events. "+\
+                     "If the hero is dead, this marks the grim end to the adventure. "}
+            response = DM.generateResponse(input, state)
 
             return output + response
         # Return output describing the combat round
